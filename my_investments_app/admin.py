@@ -8,9 +8,10 @@ from . import models
 
 class CustomUserAdmin(BaseUserAdmin):
     ordering = ['id']
-    list_display = ['email']
+    list_display = ['email', 'name']
     fieldsets = (
         (None, {"fields": ('email', 'password')}),
+        (_('Personal Info'), {'fields': ('name',)}),
         (
             _('Permissions'),
             {'fields': ('is_active', 'is_staff', 'is_superuser')}
