@@ -32,7 +32,7 @@ class SoldCrypto(models.Model):
     coin_name = models.CharField(max_length=100)
     amount_sold = models.DecimalField(max_digits=20, decimal_places=8)
     date_sold = models.DateField()
-    dentined_currency = models.CharField(max_length=30)
+    destined_currency = models.CharField(max_length=30)
     price_when_sold_real = models.DecimalField(max_digits=20, decimal_places=10)
     price_when_sold_usdt = models.DecimalField(max_digits=20, decimal_places=10)
 
