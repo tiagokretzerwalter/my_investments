@@ -27,8 +27,8 @@ class SoldCryptoSerializer(serializers.ModelSerializer):
             "coin_name",
             "amount_sold",
             "date_sold",
-            "price_when_sold_usdt",
-            "price_when_sold_real",
             "destined_currency",
+            "price_when_sold_usdt",
+            "price_when_sold_real",            
         )
         read_only_fields = ('id',)
