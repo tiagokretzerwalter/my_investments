@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import CryptoInvestments, SoldCrypto
 
-# Register your models here.
+admin.site.register(CryptoInvestments)
+admin.site.register(SoldCrypto)
