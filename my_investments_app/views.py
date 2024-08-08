@@ -1,23 +1,32 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, get_user_model
 from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import PermissionDenied
 from .serializers import UserSerializer, UserLoginSerializer
 
 
-class CreateUserView(generics.CreateAPIView):
+User = get_user_model()
+
+
+class UserCreateView(generics.CreateAPIView):
     """Create a new user in the system"""
 
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
 
-class UpdateUserView(generics.UpdateAPIView):
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
+        user_id = self.kwargs.get("pk")
+        if str(user_id) != str(self.request.user.id):
+            raise PermissionDenied(
+                "You do not have permission to access this user's details."
+            )
         return self.request.user
 
 
