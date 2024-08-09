@@ -1,9 +1,14 @@
-from rest_framework import generics, status
-from rest_framework.response import Response
+from rest_framework import generics
+from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.contrib.auth import authenticate, login, get_user_model
-from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import login, get_user_model
 from django.core.exceptions import PermissionDenied
+from knox.views import (
+    LoginView as KnoxLoginView,
+    LogoutView as KnoxLogoutView,
+    LogoutAllView as KnoxLogoutAllView,
+)
+from rest_framework.response import Response
 from .serializers import UserSerializer, UserLoginSerializer
 
 
@@ -30,21 +35,23 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
         return self.request.user
 
 
-class UserLoginView(generics.GenericAPIView):
-    serializer_class = UserLoginSerializer
+class UserLoginView(KnoxLoginView):
+    authentication_classes = [BasicAuthentication]
     permission_classes = [AllowAny]
 
-    @csrf_exempt
-    def post(self, request):
-        email = request.data.get("email")
-        password = request.data.get("password")
+    def post(self, request, format=None, *args, **kwargs):
+        serializer = UserLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+        login(request, user)
+        return super(UserLoginView, self).post(request, format=None, *args, **kwargs)
 
-        user = authenticate(request, email=email, password=password)
 
-        if user is not None:
-            login(request, user)
-            return Response({"message": "Login successful."})
-        else:
-            return Response(
-                {"error": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED
-            )
+class CustomLogoutView(KnoxLogoutView):
+    def get_post_response(self, request):
+        return Response({"message": f"Goodbye, {request.user.name}!"}, status=200)
+
+
+class CustomLogoutAllView(KnoxLogoutAllView):
+    def get_post_response(self):
+        return Response({"message": "All tokens have been invalidated."}, status=200)

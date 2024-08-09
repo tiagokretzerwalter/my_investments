@@ -2,6 +2,7 @@ from rest_framework.test import APITestCase, APIClient
 from django.urls import reverse
 from rest_framework import status
 from django.contrib.auth import get_user_model
+from knox.models import AuthToken
 from ..models import CryptoInvestments, SoldCrypto
 
 
@@ -16,7 +17,8 @@ class CryptoInvestmentsViewSetTest(APITestCase):
         self.user = User.objects.create_user(
             email="testuser@user.com", password="Testpass123."
         )
-        self.client.login(username="testuser@user.com", password="Testpass123.")
+        self.token = AuthToken.objects.create(user=self.user)[1]
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token)
         self.investment = CryptoInvestments.objects.create(
             user=self.user,
             coin_name="Bitcoin",
@@ -64,7 +66,8 @@ class SoldCryptoViewSetTest(APITestCase):
         self.user = User.objects.create_user(
             email="testuser@user.com", password="Testpass123."
         )
-        self.client.login(email="testuser@user.com", password="Testpass123.")
+        self.token = AuthToken.objects.create(user=self.user)[1]
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token)
         self.sold_crypto = SoldCrypto.objects.create(
             user=self.user,
             coin_name="Ethereum",
