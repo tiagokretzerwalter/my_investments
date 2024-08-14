@@ -30,10 +30,24 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 
+
+# For development builds, install dev dependencies
+FROM base as dev
+RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=bind,source=requirements.txt,target=requirements.txt \
+    --mount=type=bind,source=requirements.dev.txt,target=requirements.dev.txt \
+    python -m pip install -r requirements.dev.txt
+
+COPY . .
+EXPOSE 8000
+CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+
+
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
 # Leverage a bind mount to requirements.txt to avoid having to copy them into
 # into this layer.
+FROM base AS production
 RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
     python -m pip install -r requirements.txt
@@ -48,4 +62,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the application.
-CMD python3 manage.py runserver
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "my_investments_project.wsgi:application"]
